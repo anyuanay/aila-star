@@ -17,7 +17,6 @@ export default function SignUpPage() {
     if (error) {
       alert(error.message);
     } else if (data.user) {
-      // Store user role in your profiles table
       await supabase.from('profiles').insert([
         { id: data.user.id, email: data.user.email, role }
       ]);
