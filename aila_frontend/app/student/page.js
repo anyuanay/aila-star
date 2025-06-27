@@ -36,7 +36,6 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (!roleChecked || !userId) return;
     fetchCourses();
-    // eslint-disable-next-line
   }, [roleChecked, userId]);
 
   async function fetchCourses() {
@@ -53,10 +52,10 @@ export default function StudentDashboard() {
   }
 
   async function handleEnroll(courseId) {
-    const { error } = await supabase
+    await supabase
       .from('enrollments')
       .insert([{ student_id: userId, course_id: courseId }]);
-    if (!error) fetchCourses();
+    fetchCourses();
   }
 
   if (!roleChecked) return null;

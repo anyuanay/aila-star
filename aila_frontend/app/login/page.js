@@ -12,37 +12,31 @@ export default function LoginPage() {
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert(error.message);
-        setLoading(false);
-        return;
-      }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+    // Wait 500ms for session to be established
+    setTimeout(async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
-        if (profileError) {
-          alert('Could not fetch user role.');
-          setLoading(false);
-          return;
-        }
-        if (profile.role === 'instructor') {
+        if (profile?.role === 'instructor') {
           router.push('/instructor');
-        } else if (profile.role === 'student') {
+        } else if (profile?.role === 'student') {
           router.push('/student');
         } else {
           router.push('/');
         }
       }
-    } catch (error) {
-      alert('Login failed: ' + error.message);
-    }
-    setLoading(false);
+      setLoading(false);
+    }, 500);
   };
 
   const handleSocial = (provider) => {

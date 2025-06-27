@@ -42,24 +42,22 @@ export default function InstructorDashboard() {
 
   async function fetchCourses() {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('courses')
       .select('*')
       .eq('instructor_id', userId);
-    if (!error) setCourses(data || []);
+    setCourses(data || []);
     setLoading(false);
   }
 
   async function handleCreateCourse(e) {
     e.preventDefault();
     if (!newCourse) return;
-    const { error } = await supabase
+    await supabase
       .from('courses')
       .insert([{ name: newCourse, instructor_id: userId }]);
-    if (!error) {
-      setNewCourse('');
-      fetchCourses();
-    }
+    setNewCourse('');
+    fetchCourses();
   }
 
   if (!roleChecked) return null;
@@ -83,7 +81,7 @@ export default function InstructorDashboard() {
         <div>Loading...</div>
       ) : (
         <ul>
-          {courses && courses.length > 0 ? courses.map(course => (
+          {courses.length > 0 ? courses.map(course => (
             <li
               key={course.id}
               className="mb-2 p-4 bg-white rounded shadow flex justify-between items-center"

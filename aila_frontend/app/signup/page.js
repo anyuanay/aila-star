@@ -13,13 +13,17 @@ export default function SignUpPage() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // Pass role as metadata
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { role }
+      }
+    });
     if (error) {
       alert(error.message);
-    } else if (data.user) {
-      await supabase.from('profiles').insert([
-        { id: data.user.id, email: data.user.email, role }
-      ]);
+    } else {
       alert('Check your email for confirmation!');
       router.push('/login');
     }
@@ -28,10 +32,7 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSignUp}
-        className="bg-white p-8 rounded-xl shadow w-full max-w-md flex flex-col"
-      >
+      <form onSubmit={handleSignUp} className="bg-white p-8 rounded-xl shadow w-full max-w-md flex flex-col">
         <h2 className="text-2xl font-bold mb-6 text-center">Create your account</h2>
         <input
           type="email"
@@ -57,18 +58,12 @@ export default function SignUpPage() {
           <option value="student">Student</option>
           <option value="instructor">Instructor</option>
         </select>
-        <button
-          type="submit"
-          className="w-full bg-black text-white py-3 rounded-full mb-3 font-semibold text-lg transition hover:bg-gray-900"
-          disabled={loading}
-        >
+        <button type="submit" className="w-full bg-black text-white py-3 rounded-full mb-3 font-semibold text-lg transition hover:bg-gray-900" disabled={loading}>
           {loading ? 'Loading...' : 'Sign up'}
         </button>
         <div className="text-center mb-2 text-gray-700">
           Already have an account?{' '}
-          <a href="/login" className="text-blue-600 underline">
-            Login
-          </a>
+          <a href="/login" className="text-blue-600 underline">Login</a>
         </div>
       </form>
     </div>
