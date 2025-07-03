@@ -11,7 +11,6 @@ export default function InstructorDashboard() {
   const [userId, setUserId] = useState(null);
   const router = useRouter();
 
-  // Protect route and get user ID
   useEffect(() => {
     async function checkAuthAndRole() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -37,7 +36,6 @@ export default function InstructorDashboard() {
   useEffect(() => {
     if (!roleChecked || !userId) return;
     fetchCourses();
-    // eslint-disable-next-line
   }, [roleChecked, userId]);
 
   async function fetchCourses() {
@@ -63,39 +61,47 @@ export default function InstructorDashboard() {
   if (!roleChecked) return null;
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">My Courses</h1>
-      <form onSubmit={handleCreateCourse} className="flex mb-6">
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-2">Instructor Dashboard</h1>
+      <p className="mb-6 text-gray-600">Welcome! Here are your courses.</p>
+      <form onSubmit={handleCreateCourse} className="flex gap-2 mb-8">
         <input
+          className="flex-1 px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           type="text"
           placeholder="New course name"
-          className="flex-1 px-3 py-2 border rounded-l"
           value={newCourse}
           onChange={e => setNewCourse(e.target.value)}
         />
-        <button type="submit" className="bg-black text-white px-4 py-2 rounded-r">
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          type="submit"
+        >
           Create Course
         </button>
       </form>
       {loading ? (
-        <div>Loading...</div>
+        <div className="text-gray-500">Loading courses...</div>
       ) : (
-        <ul>
-          {courses.length > 0 ? courses.map(course => (
-            <li
-              key={course.id}
-              className="mb-2 p-4 bg-white rounded shadow flex justify-between items-center"
-            >
-              <span>{course.name}</span>
-              <button
-                className="text-blue-600 underline"
-                onClick={() => router.push(`/instructor/course/${course.id}`)}
+        <div className="grid gap-4">
+          {courses.length === 0 ? (
+            <div className="text-gray-500">No courses yet.</div>
+          ) : (
+            courses.map(course => (
+              <div
+                key={course.id}
+                className="bg-white shadow rounded p-4 flex items-center justify-between"
               >
-                Go to Course
-              </button>
-            </li>
-          )) : <div className="text-gray-500">No courses yet.</div>}
-        </ul>
+                <span className="font-medium">{course.name}</span>
+                <button
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={() => router.push(`/instructor/course/${course.id}`)}
+                >
+                  Go to Course
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       )}
     </div>
   );

@@ -13,7 +13,6 @@ export default function InstructorCoursePage() {
   const [summaries, setSummaries] = useState([]);
   const fileInputRef = useRef();
 
-  // Fetch course and modules on mount
   useEffect(() => {
     async function fetchCourseAndModules() {
       setLoading(true);
@@ -23,7 +22,6 @@ export default function InstructorCoursePage() {
         .eq('id', id)
         .single();
       setCourse(courseData);
-
       const { data: modulesData } = await supabase
         .from('modules')
         .select('*')
@@ -34,14 +32,11 @@ export default function InstructorCoursePage() {
     if (id) fetchCourseAndModules();
   }, [id]);
 
-  // Handle file upload and backend processing
   async function handleUpload(e) {
     e.preventDefault();
     const file = fileInputRef.current.files[0];
     if (!file) return alert("Select a file!");
     setProcessing(true);
-
-    // Upload to Supabase Storage
     const { error } = await supabase.storage
       .from('lecture-materials')
       .upload(`${id}/${file.name}`, file);
@@ -51,8 +46,6 @@ export default function InstructorCoursePage() {
       return;
     }
     alert('File uploaded! The backend will now process it.');
-
-    // Trigger backend processing
     try {
       const response = await fetch('http://localhost:8000/process-lecture/', {
         method: 'POST',
@@ -73,65 +66,77 @@ export default function InstructorCoursePage() {
     setProcessing(false);
   }
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">{course?.name || 'Course'}</h1>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Modules</h2>
-        {modules.length > 0 ? (
-          <ul>
-            {modules.map(m => (
-              <li key={m.id} className="mb-2 p-3 bg-gray-50 rounded border">
-                <div className="font-semibold">{m.title}</div>
-                {m.description && <div className="text-gray-500">{m.description}</div>}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="text-gray-500">No modules available yet.</div>
-        )}
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-2">{course?.name || "Course"}</h1>
+      <div className="mb-6 flex gap-4">
+        <button className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700" disabled>
+          Start Lecturing Assistant
+        </button>
+        <button className="px-4 py-2 bg-yellow-500 text-white rounded shadow hover:bg-yellow-600" disabled>
+          Generate Retrieval Practice
+        </button>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600" disabled>
+          Ask Questions or Chat
+        </button>
       </div>
-      <div className="mb-6">
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Modules</h2>
+        <div className="grid gap-3">
+          {modules.length === 0 ? (
+            <div className="text-gray-500">No modules yet.</div>
+          ) : (
+            modules.map(m => (
+              <div key={m.id} className="bg-gray-50 p-3 rounded shadow">
+                {m.name}
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+      <section className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Upload Lecture Materials</h2>
-        <form onSubmit={handleUpload}>
-          <input type="file" ref={fileInputRef} className="mb-2" />
-          <button type="submit" className="bg-black text-white px-4 py-2 rounded" disabled={processing}>
-            {processing ? "Uploading & Processing..." : "Upload"}
+        <form onSubmit={handleUpload} className="flex items-center gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="block w-full text-sm text-gray-600
+              file:mr-4 file:py-2 file:px-4
+              file:rounded file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100"
+            accept=".pdf,.pptx"
+            disabled={processing}
+          />
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            type="submit"
+            disabled={processing}
+          >
+            {processing ? "Uploading..." : "Upload"}
           </button>
         </form>
-      </div>
+      </section>
       {processedSegments.length > 0 && (
-        <div className="my-6">
-          <h2 className="text-xl font-semibold mb-2">Processed Lecture Segments</h2>
-          <ul>
-            {processedSegments.map((seg, idx) => (
-              <li key={idx} className="mb-4">
-                <div className="font-bold">Segment {idx + 1}:</div>
-                <div className="whitespace-pre-wrap">{seg}</div>
-                {summaries[idx] && (
-                  <div className="italic text-green-700 mt-1">
-                    Summary: {summaries[idx]}
-                  </div>
-                )}
-              </li>
+        <section>
+          <h2 className="text-xl font-semibold mb-2">Lecture Segments & Summaries</h2>
+          <div className="space-y-4">
+            {processedSegments.map((seg, i) => (
+              <div key={i} className="bg-white shadow rounded p-4">
+                <div className="text-gray-700 mb-2 whitespace-pre-line">
+                  <span className="font-bold">Segment {i + 1}:</span> {seg}
+                </div>
+                <div className="text-blue-800 bg-blue-50 rounded p-2">
+                  <span className="font-semibold">Summary:</span> {summaries[i]}
+                </div>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </section>
       )}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Enroll Students</h2>
-        <div className="text-gray-500">[Enroll students UI coming soon]</div>
-      </div>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Teaching Companion</h2>
-        <div className="text-gray-500">[Teaching companion UI coming soon]</div>
-      </div>
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Q&A / Student Questions</h2>
-        <div className="text-gray-500">[Q&A/chat UI coming soon]</div>
-      </div>
     </div>
   );
 }
